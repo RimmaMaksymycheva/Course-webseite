@@ -1,33 +1,42 @@
-//function changeLanguage(lang) {
-    function changeLanguage(lang) {
-        localStorage.setItem("selectedLanguage", lang); // Speichert die gewählte Sprache
-        updateLanguage(lang); // Aktualisiert den Text auf der Seite
-    }
-    
-    function updateLanguage(lang) {
-        document.getElementById("title").textContent = data[lang]["title"];
-        document.getElementById("1").textContent = data[lang]["1"];
-        document.getElementById("2").textContent = data[lang]["2"];
-        document.getElementById("3").textContent = data[lang]["3"];
-        document.getElementById("4").textContent = data[lang]["4"];
-        document.getElementById("5").textContent = data[lang]["5"];
-        document.getElementById("6").textContent = data[lang]["6"];
-        document.getElementById("Hi").textContent = data[lang]["Hi"];
-        document.getElementById("7").textContent = data[lang]["7"];
-        document.getElementById("Kontakt").textContent = data[lang]["Kontakt"];
-        document.getElementById("name").textContent = data[lang]["name"];
-        document.getElementById("surname").textContent = data[lang]["surname"];
-        document.getElementById("email").textContent = data[lang]["email"];
-        document.getElementById("tel").textContent = data[lang]["tel"];
-        document.getElementById("topic").textContent = data[lang]["topic"];
-        document.getElementById("message").textContent = data[lang]["message"];
-    }
-    window.onload = function() {
-        let savedLanguage = localStorage.getItem("selectedLanguage");
-        if (savedLanguage) {
-            updateLanguage(savedLanguage); // Verwendet die gespeicherte Sprache
-        } else {
-            updateLanguage("defaultLanguage"); // Verwende die Standardsprache, wenn keine gespeichert ist
+// Function to fetch language data from a JSON file
+async function fetchLanguageData(lang) {
+    try {
+        const response = await fetch(`languages/${lang}.json`);
+        if (!response.ok) {
+            throw new Error(`Could not fetch ${lang}.json: ${response.statusText}`);
         }
+        return response.json();
+    } catch (error) {
+        console.error('Error fetching language data:', error);
+        // Optionally, you can fallback to default language in case of error
+        return {}; // Return an empty object or some default data
     }
-        
+}
+
+// Function to change the language
+async function changeLanguage(lang) {
+    localStorage.setItem("selectedLanguage", lang); // Store the selected language
+    const langData = await fetchLanguageData(lang); // Fetch the language data
+    updateLanguage(langData); // Update the text on the page with the fetched data
+}
+
+// Function to update the language on the page
+function updateLanguage(langData) {
+    // Select all elements that have the data-i18n attribute
+    const elements = document.querySelectorAll('[data-i18n]');
+
+    // Loop through each element and update its text content based on the data-i18n key
+    elements.forEach(element => {
+        const key = element.getAttribute('data-i18n'); // Get the data-i18n key
+        if (langData[key]) {
+            element.textContent = langData[key]; // Update the content with the corresponding translation
+        }
+    });
+}
+
+// Function that runs when the page is loaded
+window.onload = async function() {
+    const savedLanguage = localStorage.getItem("selectedLanguage") || "de"; // Default to German
+    const langData = await fetchLanguageData(savedLanguage); // Fetch the language data
+    updateLanguage(langData); // Update the text on the page with the fetched data
+}
